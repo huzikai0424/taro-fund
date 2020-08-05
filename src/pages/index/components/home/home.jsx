@@ -7,18 +7,30 @@ import "taro-ui/dist/style/components/toast.scss";
 import "taro-ui/dist/style/components/icon.scss";
 import './home.less'
 
+localStorage.setItem('fund','[{"id":"001740","num":"4890.1","money":"7000"},{"id":"400015","num":"2008.45","money":"3000"},{"id":"005939","num":"3222.71","money":"5000"},{"id":"519674","num":"809.59","money":"4500"},{"id":"320007","num":"3955.54","money":"6000"},{"id":"001645","num":"1436.54","money":"4000"},{"id":"000522","num":"871.67","money":"2000"},{"id":"008087","num":"1669.24","money":"1900"},{"money":"1410","id":"501090","num":"1332.87"},{"id":"003095","num":"368.31","money":"1000"},{"id":"001052","num":"17474.42","money":"12500"},{"id":"160221","num":"4379.62","money":"4000"},{"id":"001557","num":"3867.26","money":"4815"}]')
+
 class Home extends Component {
     constructor() {
         super()
         this.state = { 
             boardData: [],
-            codes: ['519674', '501090', '400015', '320007', '160221', '008087'],
-            fundData: []
+            fundData: [],
+            showList: JSON.parse(localStorage.getItem('fund')) || [],
+            fundList: JSON.parse(localStorage.getItem('fund')) || []
         }
     }
     componentDidMount() {
-        this.getBoardIndex()
-        this.getFundDatas()
+        this.state.fundList.forEach(item => {
+            this.jsonp(`https://fundgz.1234567.com.cn/js/${item.id}.js?rt=${new Date().getTime()}`)
+        })
+        // axios.get('https://fundgz.1234567.com.cn/js/005939.js?rt=1596615836579').then(res => {
+            // console.log(res)
+        // }).catch(err => {
+            // console.error(err)
+        // })
+        // console.log(this.state.fundList)
+        // this.getBoardIndex()
+        // this.getFundDatas()
     }
     /**
      * 精确四舍五入
@@ -55,8 +67,33 @@ class Home extends Component {
             console.error(err)
         })
     }
+    /**
+     * jsonp请求接口
+     * @param {*} url 
+     * @param {*} jsonpCallback 
+     */
+    jsonp(url, jsonpCallback = 'jsonpgz') {
+        const script = document.createElement('script')
+        script.src = url
+        script.onload = (e)=> {
+          e.currentTarget.remove()
+        }
+        const { showList } = this.state
+        window[jsonpCallback] = data => {
+            if (!data) return
+            let targetIndex = showList.findIndex((item) => item.id == data.fundcode)
+            showList[targetIndex] = {
+                ...showList[targetIndex],
+                ...data
+            }
+            this.setState({
+                showList
+            })
+        }
+        document.body.appendChild(script)
+    }
     render() {
-        const { boardData,fundData } = this.state
+        const { boardData,showList } = this.state
         const boardList = boardData.map(item => {
             return (
                 <View className={classnames('board', item.changePercent < 0 ? 'green' : 'red')} key={item.code}>
@@ -69,34 +106,27 @@ class Home extends Component {
                 </View>
             )
         })
-        const fundList = fundData.map(item => {
+        const leftList = showList.map(item => {
             return (
-                <View className='fundItem' key={item.code}>
-                    <ScrollView>
-                        
-                    </ScrollView>
-                    <View className='lineContainer'>
-                        <View className='leftPart'>
-                            <View className='fundName'>{item.name}</View>
-                            <View className='fundCode'>{item.code}</View>
-                        </View>
-                        <View className='rightPart'>
-                            <View className='td'>
-                                <View className='netWorth'>{item.netWorth}</View>
-                                <View className='dayGrowth'>{item.dayGrowth}</View>
-                            </View>
-                            <View className='td'>
-                                <View className='expectWorth'>{item.expectWorth}</View>
-                                <View className='expectGrowth'>{item.expectGrowth}</View>
-                            </View>
-                            <View className='td'>0</View>
-                            <View className='td'>0</View>
-                            <View className='td'>0</View>
-                            <View className='td'>100</View>
-                            <View className='td'>200</View>
-                            <View className='td updateTime'>{item.expectWorthDate}</View>
-                        </View>
+                <View className='tr' key={item.id}>
+                    <View className='td'>
+                        <View>{item.name}</View>
+                        <View>{item.fundcode}</View>
                     </View>
+                </View>
+            )
+        })
+        const rightList = showList.map(item => {
+            return (
+                <View className='tr body' key={item.id}>
+                    <View className='td'>{item.dwjz}</View>
+                    <View className='td'>{item.gsz}</View>
+                    <View className='td'>{item.gszzl}%</View>
+                    <View className='td'>{item.num}</View>
+                    <View className='td'>{item.money}</View>
+                    <View className='td'>today</View>
+                    <View className='td'>all</View>
+                    <View className='td'>{item.gztime}</View>
                 </View>
             )
         })
@@ -106,10 +136,15 @@ class Home extends Component {
                     {boardList}
                 </View>
                 <View className='fundList'>
-                    <View className='thead'>
-                        <View className='lineContainer'>
-                            <View className='leftPart'>基金代码</View>
-                            <View className='rightPart'>
+                    <View className='leftPart'>
+                        <View className='thead'>
+                            <View className='td'>基金代码</View>
+                        </View>
+                        <View className='tbody'>{leftList}</View>
+                    </View>
+                    <ScrollView className='rightPart' scrollX>
+                        <View className='thead'>
+                            <View className='tr'>
                                 <View className='td'>净值</View>
                                 <View className='td'>估值</View>
                                 <View className='td'>持仓份额</View>
@@ -120,10 +155,10 @@ class Home extends Component {
                                 <View className='td'>更新时间</View>
                             </View>
                         </View>
-                    </View>
-                    <View className='tbody'>
-                        {fundList}
-                    </View>
+                        <View className='tbody'>
+                            {rightList}
+                        </View>
+                    </ScrollView>
                 </View>
             </View>
         );
