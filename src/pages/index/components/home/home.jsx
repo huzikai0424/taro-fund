@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { View,AtToast,ScrollView } from '@tarojs/components'
+import { View,AtToast,ScrollView,AtActivityIndicator } from '@tarojs/components'
 import dayjs from 'dayjs'
 import axios from 'axios'
 import classnames from 'classnames'
@@ -36,7 +36,7 @@ class Home extends Component {
      * 精确四舍五入
      */
     round = (num)=>{
-        return Math.round((+num + Number.EPSILON) * 100) / 100
+        return (Math.round((+num + Number.EPSILON) * 100) / 100).toFixed(2)
     }
     /**
      * https://api.doctorxiong.club/v1/stock/board
@@ -93,7 +93,11 @@ class Home extends Component {
         document.body.appendChild(script)
     }
     render() {
-        const { boardData,showList } = this.state
+        const { round } = this
+        const { boardData, showList } = this.state
+        let _today = 0
+        let _all = 0
+        let _allMoney = 0
         const boardList = boardData.map(item => {
             return (
                 <View className={classnames('board', item.changePercent < 0 ? 'green' : 'red')} key={item.code}>
@@ -110,57 +114,81 @@ class Home extends Component {
             return (
                 <View className='tr' key={item.id}>
                     <View className='td'>
-                        <View>{item.name}</View>
-                        <View>{item.fundcode}</View>
+                        <View className='fundName'>{item.name}</View>
+                        <View className='fundCode'>{item.fundcode}</View>
                     </View>
                 </View>
             )
         })
         const rightList = showList.map(item => {
+            const isRed = item.dwjz <= item.gsz ? 'red' : 'green'
+            const today = round(item.dwjz * item.num * item.gszzl / 100)
+            const all = round(item.gsz * item.num - item.money)
+            _today += Number(today)
+            _all += Number(all)
+            _allMoney += Number(item.money)
             return (
                 <View className='tr body' key={item.id}>
                     <View className='td'>{item.dwjz}</View>
-                    <View className='td'>{item.gsz}</View>
-                    <View className='td'>{item.gszzl}%</View>
-                    <View className='td'>{item.num}</View>
-                    <View className='td'>{item.money}</View>
-                    <View className='td'>today</View>
-                    <View className='td'>all</View>
-                    <View className='td'>{item.gztime}</View>
+                    <View className={classnames('td',isRed)}>{item.gsz}</View>
+                    <View className={classnames('td',isRed)}>{item.gszzl}%</View>
+                    <View className='td num'>{item.num}</View>
+                    <View className='td money'>{item.money}</View>
+                    <View className={classnames('td', isRed)}>{today}</View>
+                    <View className={classnames('td', isRed)}>{all}</View>
+                    <View className='td updateTime'>{item.gztime}</View>
                 </View>
             )
         })
         return (
+            
             <View className='home'>
-                <View className='boardList'>
-                    {boardList}
-                </View>
-                <View className='fundList'>
-                    <View className='leftPart'>
-                        <View className='thead'>
-                            <View className='td'>基金代码</View>
-                        </View>
-                        <View className='tbody'>{leftList}</View>
+                <AtActivityIndicator>
+                    <View className='boardList'>
+                        {boardList}
                     </View>
-                    <ScrollView className='rightPart' scrollX>
-                        <View className='thead'>
-                            <View className='tr'>
-                                <View className='td'>净值</View>
-                                <View className='td'>估值</View>
-                                <View className='td'>持仓份额</View>
-                                <View className='td'>总投入</View>
-                                <View className='td'>历史收益</View>
-                                <View className='td'>今日收益</View>
-                                <View className='td'>总收益</View>
-                                <View className='td'>更新时间</View>
+                    <View className='fundList'>
+                        <View className='leftPart'>
+                            <View className='thead'>
+                                <View className='td'>基金代码</View>
                             </View>
+                            <View className='tbody'>{leftList}</View>
                         </View>
-                        <View className='tbody'>
-                            {rightList}
+                        <ScrollView className='rightPart' scrollX>
+                            <View className='thead'>
+                                <View className='tr'>
+                                    <View className='td'>净值</View>
+                                    <View className='td'>估值</View>
+                                    <View className='td'>百分比</View>
+                                    <View className='td num'>持仓份额</View>
+                                    <View className='td money'>总投入</View>
+                                    {/* <View className='td'>历史收益</View> */}
+                                    <View className='td'>今日收益</View>
+                                    <View className='td'>总收益</View>
+                                    <View className='td updateTime'>更新时间</View>
+                                </View>
+                            </View>
+                            <View className='tbody'>
+                                {rightList}
+                            </View>
+                        </ScrollView>
+                    </View>
+                    <View className='summary'>
+                        <View className='item'>
+                            <View className='title'>总投入</View>
+                            <View className='num'>{round(_allMoney)}</View>
                         </View>
-                    </ScrollView>
+                        <View className='item'>
+                            <View className='title'>今日总收益</View>
+                            <View className={classnames('num',_today>=0?'red':'green')}>{round(_today||0)}</View>
+                        </View>
+                        <View className='item'>
+                            <View className='title'>历史总收益</View>
+                            <View className={classnames('num',_all>=0?'red':'green')}>{round(_all||0)}</View>
+                        </View>
+                    </View>
+            </AtActivityIndicator>
                 </View>
-            </View>
         );
     }
 }
