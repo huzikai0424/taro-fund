@@ -1,5 +1,31 @@
 .home{
     background: #ebecec;
+    .topInfo{
+        background: #fff;
+        height: 100px;
+        display: flex;
+        margin-bottom: 20px;
+        .board_SZ{
+            height: 100%;
+            width: 350px;
+            border-right: 1px solid #ebecec;
+        }
+        .operate{
+            display: flex;
+            height: 100%;
+            font-size: 24px;
+            flex:1;
+            color: #3F536E;
+            .button{
+                display: flex;
+                flex:1;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                line-height: 1.5;
+            }
+        }
+    }
     .green{
         color:#008000;
     }
@@ -120,5 +146,10 @@
             align-items: center;
             justify-content: center;
         }
+    }
+    .fab{
+        position: fixed;
+        right:100px;
+        bottom: 200px;
     }
 }

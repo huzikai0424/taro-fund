@@ -1,10 +1,16 @@
 import React, { Component } from 'react'
-import { View,AtToast,ScrollView,AtActivityIndicator } from '@tarojs/components'
+import {AtFab,AtButton,AtIcon} from 'taro-ui'
+import { View, ScrollView } from '@tarojs/components'
+import Taro from '@tarojs/taro'
 import dayjs from 'dayjs'
 import axios from 'axios'
 import classnames from 'classnames'
+import AddFund from './addFund'
 import "taro-ui/dist/style/components/toast.scss";
 import "taro-ui/dist/style/components/icon.scss";
+import "taro-ui/dist/style/components/button.scss";
+import "taro-ui/dist/style/components/loading.scss";
+import "taro-ui/dist/style/components/fab.scss";
 import './home.less'
 
 localStorage.setItem('fund','[{"id":"001740","num":"4890.1","money":"7000"},{"id":"400015","num":"2008.45","money":"3000"},{"id":"005939","num":"3222.71","money":"5000"},{"id":"519674","num":"809.59","money":"4500"},{"id":"320007","num":"3955.54","money":"6000"},{"id":"001645","num":"1436.54","money":"4000"},{"id":"000522","num":"871.67","money":"2000"},{"id":"008087","num":"1669.24","money":"1900"},{"money":"1410","id":"501090","num":"1332.87"},{"id":"003095","num":"368.31","money":"1000"},{"id":"001052","num":"17474.42","money":"12500"},{"id":"160221","num":"4379.62","money":"4000"},{"id":"001557","num":"3867.26","money":"4815"}]')
@@ -16,13 +22,18 @@ class Home extends Component {
             boardData: [],
             fundData: [],
             showList: JSON.parse(localStorage.getItem('fund')) || [],
-            fundList: JSON.parse(localStorage.getItem('fund')) || []
+            fundList: JSON.parse(localStorage.getItem('fund')) || [],
+            flag: 0,
+            openAddFund:false
         }
     }
     componentDidMount() {
-        this.state.fundList.forEach(item => {
-            this.jsonp(`https://fundgz.1234567.com.cn/js/${item.id}.js?rt=${new Date().getTime()}`)
-        })
+        // Taro.showLoading({
+        //     title: '加载中',
+        // })
+        // this.state.fundList.forEach(item => {
+        //     this.jsonp(`https://fundgz.1234567.com.cn/js/${item.id}.js?rt=${new Date().getTime()}`)
+        // })
         // axios.get('https://fundgz.1234567.com.cn/js/005939.js?rt=1596615836579').then(res => {
             // console.log(res)
         // }).catch(err => {
@@ -86,11 +97,23 @@ class Home extends Component {
                 ...showList[targetIndex],
                 ...data
             }
+            if (this.state.flag < this.state.showList) {
+                this.setState({
+                    flag:this.state.flag+1
+                })
+            } else {
+                Taro.hideLoading()
+            }
             this.setState({
                 showList
             })
         }
         document.body.appendChild(script)
+    }
+    handleOpenAddFund (boolean=true){
+        this.setState({
+            openAddFund:boolean
+        })
     }
     render() {
         const { round } = this
@@ -141,54 +164,67 @@ class Home extends Component {
             )
         })
         return (
-            
             <View className='home'>
-                <AtActivityIndicator>
-                    <View className='boardList'>
+                <View className='topInfo'>
+                    <View className='board_SZ'></View>
+                    {/* <View className='boardList'>
                         {boardList}
+                    </View> */}
+                    <View className='operate'>
+                        <View className='button at-icon at-icon-reload'>刷新</View>
+                        <View className='button at-icon at-icon-add' onClick={()=>this.handleOpenAddFund(true)}>新增</View>
+                        <View className='button at-icon at-icon-edit'>编辑</View>
+                        <View className='button at-icon at-icon-subtract'>删除</View>
                     </View>
-                    <View className='fundList'>
-                        <View className='leftPart'>
-                            <View className='thead'>
-                                <View className='td'>基金代码</View>
-                            </View>
-                            <View className='tbody'>{leftList}</View>
-                        </View>
-                        <ScrollView className='rightPart' scrollX>
-                            <View className='thead'>
-                                <View className='tr'>
-                                    <View className='td'>净值</View>
-                                    <View className='td'>估值</View>
-                                    <View className='td'>百分比</View>
-                                    <View className='td num'>持仓份额</View>
-                                    <View className='td money'>总投入</View>
-                                    {/* <View className='td'>历史收益</View> */}
-                                    <View className='td'>今日收益</View>
-                                    <View className='td'>总收益</View>
-                                    <View className='td updateTime'>更新时间</View>
-                                </View>
-                            </View>
-                            <View className='tbody'>
-                                {rightList}
-                            </View>
-                        </ScrollView>
-                    </View>
-                    <View className='summary'>
-                        <View className='item'>
-                            <View className='title'>总投入</View>
-                            <View className='num'>{round(_allMoney)}</View>
-                        </View>
-                        <View className='item'>
-                            <View className='title'>今日总收益</View>
-                            <View className={classnames('num',_today>=0?'red':'green')}>{round(_today||0)}</View>
-                        </View>
-                        <View className='item'>
-                            <View className='title'>历史总收益</View>
-                            <View className={classnames('num',_all>=0?'red':'green')}>{round(_all||0)}</View>
-                        </View>
-                    </View>
-            </AtActivityIndicator>
                 </View>
+
+                <View className='fundList'>
+                    <View className='leftPart'>
+                        <View className='thead'>
+                            <View className='td'>基金代码</View>
+                        </View>
+                        <View className='tbody'>{leftList}</View>
+                    </View>
+                    <ScrollView className='rightPart' scrollX>
+                        <View className='thead'>
+                            <View className='tr'>
+                                <View className='td'>净值</View>
+                                <View className='td'>估值</View>
+                                <View className='td'>百分比</View>
+                                <View className='td num'>持仓份额</View>
+                                <View className='td money'>总投入</View>
+                                {/* <View className='td'>历史收益</View> */}
+                                <View className='td'>今日收益</View>
+                                <View className='td'>总收益</View>
+                                <View className='td updateTime'>更新时间</View>
+                            </View>
+                        </View>
+                        <View className='tbody'>
+                            {rightList}
+                        </View>
+                    </ScrollView>
+                </View>
+                <View className='summary'>
+                    <View className='item'>
+                        <View className='title'>总投入</View>
+                        <View className='num'>{round(_allMoney)}</View>
+                    </View>
+                    <View className='item'>
+                        <View className='title'>今日总收益</View>
+                        <View className={classnames('num',_today>=0?'red':'green')}>{round(_today||0)}</View>
+                    </View>
+                    <View className='item'>
+                        <View className='title'>历史总收益</View>
+                        <View className={classnames('num',_all>=0?'red':'green')}>{round(_all||0)}</View>
+                    </View>
+                </View>
+                {/* <View className='fab'>
+                    <AtFab>
+                        <View className='at-fab__icon at-icon at-icon-menu'></View>
+                    </AtFab>
+                </View> */}
+                <AddFund openAddFund={this.state.openAddFund} handleOpenAddFund={(boolean)=>this.handleOpenAddFund(boolean)} />
+            </View>
         );
     }
 }

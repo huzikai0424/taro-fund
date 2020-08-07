@@ -1,0 +1,32 @@
+.settings{
+    margin-bottom: 128px;
+    background: #ebecec;
+    .panel{
+        background: #fff;
+        margin-bottom: 20px;
+        .panel-title{
+            height: 80px;
+            line-height: 80px;
+            padding-left: 36px;
+            color: rgb(106, 106, 119);
+            font-size: 22px;
+            font-weight: 700;
+            line-height: 1.5;
+            position: relative;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            &:before{
+                content: "";
+                display: inline-block;
+                position: absolute;
+                left: 20px;
+                width: 4px;
+                height: 20px;
+                background-color: rgb(97, 144, 232);
+                box-shadow: rgba(97, 144, 232, 0.2) 0px 0.14933rem 0.256rem 0px;
+                border-radius: 1px;
+            }
+        }
+    }
+}
