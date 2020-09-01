@@ -1,47 +1,57 @@
 import React, { Component } from 'react'
-import {AtFab,AtButton,AtIcon} from 'taro-ui'
-import { View, ScrollView } from '@tarojs/components'
+import {AtActionSheet, AtActionSheetItem } from 'taro-ui'
+import { View, ScrollView,Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import dayjs from 'dayjs'
 import axios from 'axios'
 import classnames from 'classnames'
-import AddFund from './addFund'
+import "taro-ui/dist/style/components/action-sheet.scss";
 import "taro-ui/dist/style/components/toast.scss";
 import "taro-ui/dist/style/components/icon.scss";
 import "taro-ui/dist/style/components/button.scss";
 import "taro-ui/dist/style/components/loading.scss";
 import "taro-ui/dist/style/components/fab.scss";
+import { getAllFundData,deleteFundById,jsonp } from '@/untils'
+import AddFund from './addFund'
 import './home.less'
+import Picker from './picker'
 
-localStorage.setItem('fund','[{"id":"001740","num":"4890.1","money":"7000"},{"id":"400015","num":"2008.45","money":"3000"},{"id":"005939","num":"3222.71","money":"5000"},{"id":"519674","num":"809.59","money":"4500"},{"id":"320007","num":"3955.54","money":"6000"},{"id":"001645","num":"1436.54","money":"4000"},{"id":"000522","num":"871.67","money":"2000"},{"id":"008087","num":"1669.24","money":"1900"},{"money":"1410","id":"501090","num":"1332.87"},{"id":"003095","num":"368.31","money":"1000"},{"id":"001052","num":"17474.42","money":"12500"},{"id":"160221","num":"4379.62","money":"4000"},{"id":"001557","num":"3867.26","money":"4815"}]')
+// localStorage.setItem('fund','[{"id":"001740","num":"4890.1","money":"7000"},{"id":"400015","num":"2008.45","money":"3000"},{"id":"005939","num":"3222.71","money":"5000"},{"id":"519674","num":"809.59","money":"4500"},{"id":"320007","num":"3955.54","money":"6000"},{"id":"001645","num":"1436.54","money":"4000"},{"id":"000522","num":"871.67","money":"2000"},{"id":"008087","num":"1669.24","money":"1900"},{"money":"1410","id":"501090","num":"1332.87"},{"id":"003095","num":"368.31","money":"1000"},{"id":"001052","num":"17474.42","money":"12500"},{"id":"160221","num":"4379.62","money":"4000"},{"id":"001557","num":"3867.26","money":"4815"}]')
 
 class Home extends Component {
     constructor() {
         super()
         this.state = { 
             boardData: [],
-            fundData: [],
             showList: JSON.parse(localStorage.getItem('fund')) || [],
-            fundList: JSON.parse(localStorage.getItem('fund')) || [],
             flag: 0,
-            openAddFund:false
+            openAddFund: false,
+            isShowActionToast: false,
+            range: [],
+            modalType: 0, //0新增 1修改
+            initData: {}
+          
         }
+        this.pickerChange = this.pickerChange.bind(this)
+        this.getFundApiData = this.getFundApiData.bind(this)
     }
     componentDidMount() {
-        // Taro.showLoading({
-        //     title: '加载中',
-        // })
-        // this.state.fundList.forEach(item => {
-        //     this.jsonp(`https://fundgz.1234567.com.cn/js/${item.id}.js?rt=${new Date().getTime()}`)
-        // })
-        // axios.get('https://fundgz.1234567.com.cn/js/005939.js?rt=1596615836579').then(res => {
-            // console.log(res)
-        // }).catch(err => {
-            // console.error(err)
-        // })
-        // console.log(this.state.fundList)
+       this.getFundApiData()
         // this.getBoardIndex()
         // this.getFundDatas()
+    }
+    getFundApiData() {
+        Taro.showLoading({
+            title: '加载中',
+        })
+        getAllFundData().forEach(item => {
+            this.jsonp(`https://fundgz.1234567.com.cn/js/${item.id}.js?rt=${new Date().getTime()}`)
+        })
+    }
+    showActionToast(boolean=true) {
+        this.setState({
+            isShowActionToast:boolean
+        })
     }
     /**
      * 精确四舍五入
@@ -71,9 +81,9 @@ class Home extends Component {
         const codes = this.state.codes.toString()
         axios.get(`https://api.doctorxiong.club/v1/fund?code=${codes}`).then(res => { 
             console.log(res.data)
-            this.setState({
-                fundData:res.data.data
-            })
+            // this.setState({
+            //     fundData:res.data.data
+            // })
         }).catch(err => {
             console.error(err)
         })
@@ -97,11 +107,20 @@ class Home extends Component {
                 ...showList[targetIndex],
                 ...data
             }
-            if (this.state.flag < this.state.showList) {
+            console.log(this.state.flag,this.state.showList.length)
+            if (this.state.flag < this.state.showList.length-1) {
                 this.setState({
                     flag:this.state.flag+1
                 })
             } else {
+                const range = []
+                showList.forEach((item) => {
+                    range.push(`${item.id} ${item.name}`)
+                })
+                this.setState({
+                    range,
+                    flag:0
+                })
                 Taro.hideLoading()
             }
             this.setState({
@@ -115,9 +134,68 @@ class Home extends Component {
             openAddFund:boolean
         })
     }
+    selectAction(type) {
+        switch (type) {
+            case 'add': {
+                this.setState({
+                    modalType:0
+                })
+                this.showActionToast(false)
+                this.handleOpenAddFund(true)
+                break;
+            }
+            case 'editor': {
+                this.setState({
+                    modalType:1
+                })
+                // this.showActionToast(false)
+                // this.handleOpenAddFund(true)
+                break;
+            }
+            case 'edirotAll': {
+                break;
+            }
+            case 'delete': {
+                break;
+            }
+            default:
+                break;
+        }
+    }
+    /**
+     * 选择框回调函数
+     */
+    pickerChange(value,type) {
+        this.showActionToast(false)
+        if (type === 'editor') {
+            
+        } else if(type==='delete') {
+            Taro.showModal({
+                title: '确定删除基金？',
+                content: value,
+                confirmColor:'#ff0000',
+                success: (item)=> {
+                    if (item.confirm) {
+                        const fundCode = value.split(' ')[0]
+                        deleteFundById(fundCode)
+                        let { showList } = this.state
+                        showList = showList.filter((item2) => {
+                            return item2.fundcode!=fundCode
+                        })
+                        console.log(showList)
+                        this.setState({
+                            showList
+                        }, () => {
+                            this.getFundApiData()
+                        })
+                    }
+                }
+            })
+        }
+    }
     render() {
         const { round } = this
-        const { boardData, showList } = this.state
+        const { boardData, showList,isShowActionToast,range,modalType,initData } = this.state
         let _today = 0
         let _all = 0
         let _allMoney = 0
@@ -171,10 +249,16 @@ class Home extends Component {
                         {boardList}
                     </View> */}
                     <View className='operate'>
-                        <View className='button at-icon at-icon-reload'>刷新</View>
-                        <View className='button at-icon at-icon-add' onClick={()=>this.handleOpenAddFund(true)}>新增</View>
-                        <View className='button at-icon at-icon-edit'>编辑</View>
-                        <View className='button at-icon at-icon-subtract'>删除</View>
+                        <View className='button at-icon at-icon-reload' onClick={()=>this.getFundApiData()}>刷新</View>
+                        {/* <View className='button at-icon at-icon-add' onClick={()=>this.handleOpenAddFund(true)}>新增</View> */}
+                        <View className='button at-icon at-icon-edit' onClick={()=>this.showActionToast()}>
+                            编辑
+                        </View>
+                        {/* <View className='button' onClick={()=>this.showActionToast()}>
+                            <Picker range={['银河', '诺安']} onOk={this.pickerChange}>
+                            </Picker>
+                        </View> */}
+                        {/* <View className='button at-icon at-icon-subtract'>删除</View> */}
                     </View>
                 </View>
 
@@ -218,12 +302,32 @@ class Home extends Component {
                         <View className={classnames('num',_all>=0?'red':'green')}>{round(_all||0)}</View>
                     </View>
                 </View>
-                {/* <View className='fab'>
-                    <AtFab>
-                        <View className='at-fab__icon at-icon at-icon-menu'></View>
-                    </AtFab>
-                </View> */}
-                <AddFund openAddFund={this.state.openAddFund} handleOpenAddFund={(boolean)=>this.handleOpenAddFund(boolean)} />
+                
+                <AtActionSheet isOpened={isShowActionToast} cancelText='取消' title='在下方选择你的操作'>
+                    <AtActionSheetItem onClick={() => this.selectAction('add')}>
+                        新增基金
+                    </AtActionSheetItem>
+                    <AtActionSheetItem onClick={() => this.selectAction('editor')}>
+                        <Picker range={range} onOk={(value)=>this.pickerChange(value,'editor')}>
+                            编辑基金
+                        </Picker>
+                    </AtActionSheetItem>
+                    <AtActionSheetItem onClick={()=>this.selectAction('editorAll')}>
+                        编辑总收益
+                    </AtActionSheetItem>
+                    <AtActionSheetItem onClick={() => this.selectAction('delete')}>
+                        <Picker range={range} onOk={(value)=>this.pickerChange(value,'delete')}>
+                            <Text className='red'>删除基金</Text>
+                        </Picker>
+                    </AtActionSheetItem>
+                </AtActionSheet>
+                <AddFund
+                  openAddFund={this.state.openAddFund}
+                  handleOpenAddFund={(boolean) => this.handleOpenAddFund(boolean)}
+                  type={modalType}
+                  initData={initData}
+                  onSuccess={this.getFundApiData}
+                />
             </View>
         );
     }

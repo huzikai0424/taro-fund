@@ -56,6 +56,12 @@ class Settings extends Component {
 
                 <View className='panel'>
                     <View className='panel-title'>大盘指数</View>
+                    {/* <AtAccordion
+                      open={openBoardList}
+                      onClick={this.handleClick}
+                      title='大盘指数'
+                    >
+                    </AtAccordion> */}
                     <AtCheckbox
                       options={this.checkboxOption}
                       selectedList={this.state.boardList}
