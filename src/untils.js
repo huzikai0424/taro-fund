@@ -47,8 +47,9 @@ const jsonp = (url, jsonpCallback = 'jsonpgz') => {
     })
 }
 const addFund = (data) => {
-    getAllFundData().push(data)
-    localStorage.setItem('fund',JSON.stringify(getAllFundData()))
+    const fundData = getAllFundData()
+    fundData.push(data)
+    localStorage.setItem('fund',JSON.stringify(fundData))
 }
 const deleteFundById = (id) => {
     let newFund = getAllFundData().filter((item) => {

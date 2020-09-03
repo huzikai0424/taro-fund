@@ -13,8 +13,9 @@ import "taro-ui/dist/style/components/loading.scss";
 import "taro-ui/dist/style/components/fab.scss";
 import { getAllFundData,deleteFundById,jsonp } from '@/untils'
 import AddFund from './addFund'
-import './home.less'
 import Picker from './picker'
+import TotalProfit from './totalProfit'
+import './home.less'
 
 // localStorage.setItem('fund','[{"id":"001740","num":"4890.1","money":"7000"},{"id":"400015","num":"2008.45","money":"3000"},{"id":"005939","num":"3222.71","money":"5000"},{"id":"519674","num":"809.59","money":"4500"},{"id":"320007","num":"3955.54","money":"6000"},{"id":"001645","num":"1436.54","money":"4000"},{"id":"000522","num":"871.67","money":"2000"},{"id":"008087","num":"1669.24","money":"1900"},{"money":"1410","id":"501090","num":"1332.87"},{"id":"003095","num":"368.31","money":"1000"},{"id":"001052","num":"17474.42","money":"12500"},{"id":"160221","num":"4379.62","money":"4000"},{"id":"001557","num":"3867.26","money":"4815"}]')
 
@@ -29,8 +30,8 @@ class Home extends Component {
             isShowActionToast: false,
             range: [],
             modalType: 0, //0新增 1修改
-            initData: {}
-          
+            initData: {},
+            isShowTotalProfit:false
         }
         this.pickerChange = this.pickerChange.bind(this)
         this.getFundApiData = this.getFundApiData.bind(this)
@@ -41,6 +42,9 @@ class Home extends Component {
         // this.getFundDatas()
     }
     getFundApiData() {
+        if (getAllFundData().length === 0) {
+            return
+        }
         Taro.showLoading({
             title: '加载中',
         })
@@ -99,6 +103,10 @@ class Home extends Component {
         script.onload = (e)=> {
           e.currentTarget.remove()
         }
+        script.onerror = (e) => {
+            console.error('获得基金接口失败:', e)
+            e.currentTarget.remove()
+        }
         const { showList } = this.state
         window[jsonpCallback] = data => {
             if (!data) return
@@ -107,7 +115,6 @@ class Home extends Component {
                 ...showList[targetIndex],
                 ...data
             }
-            console.log(this.state.flag,this.state.showList.length)
             if (this.state.flag < this.state.showList.length-1) {
                 this.setState({
                     flag:this.state.flag+1
@@ -129,9 +136,22 @@ class Home extends Component {
         }
         document.body.appendChild(script)
     }
+    onSuccessAdd(object) {
+        const { showList } = this.state
+        showList.push(object)
+        this.setState({
+            showList
+        })
+        this.getFundApiData()
+    }
     handleOpenAddFund (boolean=true){
         this.setState({
             openAddFund:boolean
+        })
+    }
+    showTotalProfit(boolean) {
+        this.setState({
+            isShowTotalProfit:boolean
         })
     }
     selectAction(type) {
@@ -152,7 +172,9 @@ class Home extends Component {
                 // this.handleOpenAddFund(true)
                 break;
             }
-            case 'edirotAll': {
+            case 'editAll': {
+                this.showActionToast(false)
+                this.showTotalProfit(true)
                 break;
             }
             case 'delete': {
@@ -168,7 +190,10 @@ class Home extends Component {
     pickerChange(value,type) {
         this.showActionToast(false)
         if (type === 'editor') {
-            
+            this.handleOpenAddFund(true)
+            this.setState({
+                initData:getAllFundData().find((item)=>item.id==value.split(' ')[0])
+            })
         } else if(type==='delete') {
             Taro.showModal({
                 title: '确定删除基金？',
@@ -194,8 +219,9 @@ class Home extends Component {
         }
     }
     render() {
+        const totalProfit = +localStorage.getItem('totalProfit') || 0
         const { round } = this
-        const { boardData, showList,isShowActionToast,range,modalType,initData } = this.state
+        const { boardData, showList,isShowActionToast,range,modalType,initData,isShowTotalProfit } = this.state
         let _today = 0
         let _all = 0
         let _allMoney = 0
@@ -235,8 +261,9 @@ class Home extends Component {
                     <View className={classnames('td',isRed)}>{item.gszzl}%</View>
                     <View className='td num'>{item.num}</View>
                     <View className='td money'>{item.money}</View>
-                    <View className={classnames('td', isRed)}>{today}</View>
-                    <View className={classnames('td', isRed)}>{all}</View>
+                    <View className={classnames('td', today>=0?'red':'green')}>{today}</View>
+                    <View className={classnames('td', all>=0?'red':'green')}>{all}</View>
+                    <View className={classnames('td', (item.historicalIncome||0)>=0?'red':'green')}>{(item.historicalIncome||0)}</View>
                     <View className='td updateTime'>{item.gztime}</View>
                 </View>
             )
@@ -277,9 +304,9 @@ class Home extends Component {
                                 <View className='td'>百分比</View>
                                 <View className='td num'>持仓份额</View>
                                 <View className='td money'>总投入</View>
-                                {/* <View className='td'>历史收益</View> */}
                                 <View className='td'>今日收益</View>
                                 <View className='td'>总收益</View>
+                                <View className='td'>历史收益</View>
                                 <View className='td updateTime'>更新时间</View>
                             </View>
                         </View>
@@ -298,8 +325,12 @@ class Home extends Component {
                         <View className={classnames('num',_today>=0?'red':'green')}>{round(_today||0)}</View>
                     </View>
                     <View className='item'>
+                        <View className='title'>持有总收益</View>
+                        <View className={classnames('num',(_all+totalProfit)>=0?'red':'green')}>{round((_all+totalProfit)||0)}</View>
+                    </View>
+                    <View className='item'>
                         <View className='title'>历史总收益</View>
-                        <View className={classnames('num',_all>=0?'red':'green')}>{round(_all||0)}</View>
+                        <View className={classnames('num',(_all+totalProfit)>=0?'red':'green')}>{round((_all+totalProfit)||0)}</View>
                     </View>
                 </View>
                 
@@ -312,7 +343,7 @@ class Home extends Component {
                             编辑基金
                         </Picker>
                     </AtActionSheetItem>
-                    <AtActionSheetItem onClick={()=>this.selectAction('editorAll')}>
+                    <AtActionSheetItem onClick={()=>this.selectAction('editAll')}>
                         编辑总收益
                     </AtActionSheetItem>
                     <AtActionSheetItem onClick={() => this.selectAction('delete')}>
@@ -326,8 +357,11 @@ class Home extends Component {
                   handleOpenAddFund={(boolean) => this.handleOpenAddFund(boolean)}
                   type={modalType}
                   initData={initData}
-                  onSuccess={this.getFundApiData}
+                  onSuccess={(object)=>this.onSuccessAdd(object)}
                 />
+                {isShowTotalProfit &&
+                    <TotalProfit onClose={() => this.showTotalProfit(false)} show={isShowTotalProfit} />
+                }
             </View>
         );
     }

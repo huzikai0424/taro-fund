@@ -23,6 +23,21 @@ class AddFund extends Component {
         this.save = this.save.bind(this)
         this.delete = this.delete.bind(this)
     }
+    static getDerivedStateFromProps(nextProps, prevState) {
+        if (nextProps.openAddFund &&
+            nextProps.type === 1 &&
+            nextProps.initData.id!=prevState.code
+        ) {
+            const { id, num, money, historicalIncome } = nextProps.initData
+            return {
+                code:id,
+                num: +num || 0,
+                money: +money || 0,
+                historicalIncome:+historicalIncome||0
+            }
+        }
+        return null
+    }
     componentDidMount() { 
 
     }
@@ -61,7 +76,7 @@ class AddFund extends Component {
                         }
                         addFund(object)
                         this.props.handleOpenAddFund(false)
-                        this.props.onSuccess()
+                        this.props.onSuccess(object)
                     }
                 }
             })
@@ -106,6 +121,7 @@ class AddFund extends Component {
             default:
                 break;
         }
+        return value
     }
     
     render() {
@@ -124,8 +140,9 @@ class AddFund extends Component {
                       type='digit'
                       placeholder='基金代码'
                       value={code}
-                      maxLength={6}
+                      maxLength='6'
                       required
+                      editable={this.props.type===0}
                       onChange={(e)=>this.handleInput(e,'code')}
                     />
                     <AtInput
