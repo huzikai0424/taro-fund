@@ -16,6 +16,7 @@ import AddFund from './addFund'
 import Picker from './picker'
 import TotalProfit from './totalProfit'
 import './home.less'
+import BoardDataComponents from './boardList'
 
 // localStorage.setItem('fund','[{"id":"001740","num":"4890.1","money":"7000"},{"id":"400015","num":"2008.45","money":"3000"},{"id":"005939","num":"3222.71","money":"5000"},{"id":"519674","num":"809.59","money":"4500"},{"id":"320007","num":"3955.54","money":"6000"},{"id":"001645","num":"1436.54","money":"4000"},{"id":"000522","num":"871.67","money":"2000"},{"id":"008087","num":"1669.24","money":"1900"},{"money":"1410","id":"501090","num":"1332.87"},{"id":"003095","num":"368.31","money":"1000"},{"id":"001052","num":"17474.42","money":"12500"},{"id":"160221","num":"4379.62","money":"4000"},{"id":"001557","num":"3867.26","money":"4815"}]')
 
@@ -271,21 +272,18 @@ class Home extends Component {
         return (
             <View className='home'>
                 <View className='topInfo'>
-                    <View className='board_SZ'></View>
-                    {/* <View className='boardList'>
-                        {boardList}
-                    </View> */}
-                    <View className='operate'>
-                        <View className='button at-icon at-icon-reload' onClick={()=>this.getFundApiData()}>刷新</View>
-                        {/* <View className='button at-icon at-icon-add' onClick={()=>this.handleOpenAddFund(true)}>新增</View> */}
-                        <View className='button at-icon at-icon-edit' onClick={()=>this.showActionToast()}>
-                            编辑
+                    <View className='topLine'>
+                        <View className='updataTime'>
+                            <View>数据更新时间:</View>
+                            <View>{dayjs().format('YYYY-MM-DD HH:mm:ss')}</View>
                         </View>
-                        {/* <View className='button' onClick={()=>this.showActionToast()}>
-                            <Picker range={['银河', '诺安']} onOk={this.pickerChange}>
-                            </Picker>
-                        </View> */}
-                        {/* <View className='button at-icon at-icon-subtract'>删除</View> */}
+                        <View className='operate'>
+                            <View className='button at-icon at-icon-reload' onClick={()=>this.getFundApiData()}>刷新</View>
+                            <View className='button at-icon at-icon-edit' onClick={()=>this.showActionToast()}>编辑</View>
+                        </View>
+                    </View>
+                    <View className='boardList'>
+                        <BoardDataComponents />
                     </View>
                 </View>
 

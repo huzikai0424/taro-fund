@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { View } from '@tarojs/components'
+import { View ,Checkbox} from '@tarojs/components'
 import { AtForm, AtSwitch, AtCheckbox,AtButton,AtList, AtListItem,AtAccordion } from 'taro-ui'
 import "taro-ui/dist/style/components/checkbox.scss";
 import "taro-ui/dist/style/components/icon.scss";
@@ -15,16 +15,22 @@ class Settings extends Component {
             openBoardList:true
         }
         this.checkboxOption = [{
-            value: 'list1',
+            value: '000001',
             label: '上证指数'
-          },{
-            value: 'list2',
+        },{
+            value: '000300',
             label: '沪深300'
-          },{
-            value: 'list3',
+        },{
+            value: '000905',
+            label: '中证500'
+        },{
+            value: '000016',
+            label: '上证50'
+        }, {
+            value: '399001',
             label: '深证成指'
-          },{
-            value: 'list4',
+        }, {
+            value: '399006',
             label: '创业板指'
         }]
     }
@@ -43,7 +49,7 @@ class Settings extends Component {
         })
       }
     render() {
-        const {openBoardList} = this.state
+        const { openBoardList } = this.state
         return (
             <View className='settings'>
                 <View className='panel'>
@@ -67,6 +73,7 @@ class Settings extends Component {
                       selectedList={this.state.boardList}
                       onChange={this.handleBoardChange}
                     />
+                    {/* {_checkboxOption} */}
                 </View>
 
                 <View className='panel'>

@@ -2,27 +2,31 @@
     background: #ebecec;
     .topInfo{
         background: #fff;
-        height: 100px;
-        display: flex;
+        // display: flex;
+        position: relative;
         margin-bottom: 20px;
-        .board_SZ{
-            height: 100%;
-            width: 350px;
-            border-right: 1px solid #ebecec;
-        }
-        .operate{
+        .topLine{
             display: flex;
-            height: 100%;
-            font-size: 24px;
-            flex:1;
-            color: #3F536E;
-            .button{
-                display: flex;
+            padding:10px 30px;
+            border-bottom: 1px solid #ebecec;
+            .updataTime{
                 flex:1;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                line-height: 1.5;
+                font-size:28px;
+            }
+            .operate{
+                display: flex;
+                height: 100%;
+                font-size: 24px;
+                flex:1;
+                color: #3F536E;
+                .button{
+                    display: flex;
+                    flex:1;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    line-height: 1.5;
+                }
             }
         }
     }
@@ -38,21 +42,7 @@
     .red.update{
         background: rgba(255,0,0,0.2);
     }
-    .boardList{
-        background: #fff;
-        display: flex;
-        margin-bottom: 20px;
-        .board{
-            font-size:28px;
-            width: 180px;
-            padding: 10px;
-            display: inline-block;
-            border-radius: 10px;
-            margin-right:10px;
-            text-align: center;
-            flex-shrink:0;
-        }
-    }
+    
     .fundList{
         background: #fff;
         font-size: 35px;
