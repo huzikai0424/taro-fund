@@ -8,6 +8,9 @@ class Profit extends Component {
 
         }
     }
+    componentDidMount() {
+        // console.log(A)
+    }
     render() {
         return (
             <View>Profit</View>

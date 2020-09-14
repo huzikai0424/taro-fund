@@ -32,7 +32,8 @@ class Home extends Component {
             range: [],
             modalType: 0, //0新增 1修改
             initData: {},
-            isShowTotalProfit:false
+            isShowTotalProfit: false,
+            timestamp:new Date().getTime()
         }
         this.pickerChange = this.pickerChange.bind(this)
         this.getFundApiData = this.getFundApiData.bind(this)
@@ -43,6 +44,9 @@ class Home extends Component {
         // this.getFundDatas()
     }
     getFundApiData() {
+        this.setState({
+            timestamp:new Date().getTime()
+        })
         if (getAllFundData().length === 0) {
             return
         }
@@ -222,22 +226,10 @@ class Home extends Component {
     render() {
         const totalProfit = +localStorage.getItem('totalProfit') || 0
         const { round } = this
-        const { boardData, showList,isShowActionToast,range,modalType,initData,isShowTotalProfit } = this.state
+        const { timestamp, showList,isShowActionToast,range,modalType,initData,isShowTotalProfit } = this.state
         let _today = 0
         let _all = 0
         let _allMoney = 0
-        const boardList = boardData.map(item => {
-            return (
-                <View className={classnames('board', item.changePercent < 0 ? 'green' : 'red')} key={item.code}>
-                    <View className='boardName'>{item.name}</View>
-                    <View className='price'>{item.price}</View>
-                    <View className='change'>
-                    <View>{item.priceChange}</View>
-                    <View>{item.changePercent}%</View>
-                    </View>
-                </View>
-            )
-        })
         const leftList = showList.map(item => {
             return (
                 <View className='tr' key={item.id}>
@@ -275,7 +267,7 @@ class Home extends Component {
                     <View className='topLine'>
                         <View className='updataTime'>
                             <View>数据更新时间:</View>
-                            <View>{dayjs().format('YYYY-MM-DD HH:mm:ss')}</View>
+                            <View>{dayjs(+timestamp).format('YYYY-MM-DD HH:mm:ss')}</View>
                         </View>
                         <View className='operate'>
                             <View className='button at-icon at-icon-reload' onClick={()=>this.getFundApiData()}>刷新</View>

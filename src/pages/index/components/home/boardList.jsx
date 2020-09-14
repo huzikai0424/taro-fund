@@ -37,7 +37,7 @@ class BoardList extends Component {
                     {item.f4 >= 0?'↑':'↓'}
                 </View>
                 <View className={classnames('item3',item.f4>=0?'red':'green')}>
-                    {item.f4} {item.f3}
+                    {item.f4>=0?'+':'-'}{item.f4} {item.f3}%
                 </View>
             </View>
         ))
@@ -45,8 +45,6 @@ class BoardList extends Component {
             <ScrollView className={classnames('boardListContainer')} scrollX>
                 {_boardList}
             </ScrollView>
-            // <View className='boardListContainer'>
-            // </View>
         );
     }
 }
